@@ -1,0 +1,877 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#0d6a55">
+<title>Katalog Almathba'ah</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>html{padding-top:env(safe-area-inset-top,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400..700&display=swap">
+<style>
+/* Layout: alat kerja toko buku. Header + tiga tab (Katalog = grid sampul, Penjualan = catatan harian, Rekap = laporan periode), navigasi bawah tetap, lembar edit dari bawah. Satu blok warna tegas: panel pendapatan di Rekap. */
+:root {
+  --bg: #f1f5f3;
+  --surface: #ffffff;
+  --surface-2: #e6eee9;
+  --fg: #14201b;
+  --muted: #566860;
+  --line: #d2ddd7;
+  --accent: #0d6a55;
+  --accent-fg: #ffffff;
+  --accent-soft: #d3ebe2;
+  --danger: #b3261e;
+  --warn: #8a5a00;
+  --font-display: 'Bricolage Grotesque', 'Figtree', system-ui, sans-serif;
+  --font-body: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --r: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1412; --surface: #151f1b; --surface-2: #1c2a24; --fg: #e5eee9; --muted: #94a89e;
+    --line: #28382f; --accent: #52c7a4; --accent-fg: #05221a; --accent-soft: #163329;
+    --danger: #ff8d84; --warn: #f0b955; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1412; --surface: #151f1b; --surface-2: #1c2a24; --fg: #e5eee9; --muted: #94a89e;
+  --line: #28382f; --accent: #52c7a4; --accent-fg: #05221a; --accent-soft: #163329;
+  --danger: #ff8d84; --warn: #f0b955; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 15px; line-height: 1.45;
+  padding-block: 18px calc(92px + env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 980px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+h1 { font-size: 27px; line-height: 1.1; font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 19px; font-weight: 700; }
+.muted { color: var(--muted); }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.top { margin-bottom: 16px; }
+.status { margin: 6px 0 0; font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 7px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; }
+.dot.ok { background: var(--accent); }
+.dot.warn { background: var(--warn); }
+.dot.bad { background: var(--danger); }
+
+.btn {
+  min-height: 44px; padding: 9px 16px; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--surface); color: var(--fg); font-weight: 600; cursor: pointer;
+}
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+.btn.danger { color: var(--danger); border-color: var(--danger); background: transparent; }
+.btn.sm { min-height: 36px; padding: 5px 12px; font-size: 14px; }
+.btn:disabled { opacity: .5; cursor: default; }
+
+.tools { display: flex; flex-wrap: wrap; gap: 10px; }
+.tools input[type=search] { flex: 1 1 220px; min-width: 0; }
+input[type=text], input[type=search], input[type=number], input[type=date], select, textarea {
+  width: 100%; min-height: 44px; padding: 9px 12px; font-size: 16px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--bg); min-width: 0;
+}
+textarea { min-height: 76px; resize: vertical; }
+input[type=file] { width: 100%; font-size: 14px; }
+input[type=file]::file-selector-button {
+  font: inherit; font-weight: 600; font-size: 14px; padding: 6px 12px; margin-right: 10px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer;
+}
+
+.chips { display: flex; gap: 8px; overflow-x: auto; padding: 12px 0 4px; scrollbar-width: thin; }
+.chip {
+  flex: none; white-space: nowrap; min-height: 36px; padding: 6px 13px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--surface); font-size: 14px; font-weight: 500; cursor: pointer;
+}
+.chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; }
+.count { margin: 12px 0 10px; font-size: 13px; color: var(--muted); }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
+.cover { display: block; width: 100%; aspect-ratio: 3 / 4; position: relative; border: 0; padding: 0; cursor: pointer; background: var(--surface-2); }
+.cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ph {
+  position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 12px;
+  color: #fff; overflow: hidden; text-align: left;
+  background: linear-gradient(165deg, hsl(var(--h) 42% 36%), hsl(var(--h) 48% 20%));
+}
+.ph::before {
+  content: ""; position: absolute; left: 14%; right: 14%; top: 34%; height: 30%;
+  background: repeating-linear-gradient(to bottom, rgba(255,255,255,.28) 0 2px, transparent 2px 9px);
+}
+.ph-k { position: relative; font: 600 10px/1 var(--font-body); letter-spacing: .16em; text-transform: uppercase; opacity: .85; }
+.ph-b { position: relative; display: flex; justify-content: space-between; align-items: flex-end; gap: 6px; }
+.ph-c { font: 700 13px/1.2 var(--font-display); }
+.ph-add { font: 600 11px/1 var(--font-body); padding: 5px 8px; border-radius: 999px; background: rgba(255,255,255,.2); white-space: nowrap; }
+.cbody { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+.ccat { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.card h3 { font-size: 15px; line-height: 1.3; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.cprice { font-weight: 700; font-variant-numeric: tabular-nums; }
+.csold { font-size: 12px; color: var(--accent); font-weight: 600; }
+.cacts { margin-top: auto; padding-top: 8px; display: flex; gap: 8px; }
+.cacts .btn { flex: 1; padding-inline: 8px; }
+
+.empty { border: 1px dashed var(--line); border-radius: var(--r); padding: 26px 18px; text-align: center; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.empty p { margin: 0; max-width: 42ch; text-wrap: pretty; }
+
+.sec-h { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+.dayh { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin: 20px 0 8px; font-weight: 700; }
+.dayh span:last-child { font-variant-numeric: tabular-nums; color: var(--accent); }
+.srow {
+  display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 12px; align-items: center; width: 100%; text-align: left;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px 8px 8px; margin-bottom: 8px; cursor: pointer;
+}
+.sth { position: relative; width: 44px; aspect-ratio: 3 / 4; border-radius: 6px; overflow: hidden; background: linear-gradient(165deg, hsl(var(--h) 42% 36%), hsl(var(--h) 48% 20%)); }
+.sth img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.smain { display: flex; flex-direction: column; min-width: 0; }
+.stitle { font-weight: 600; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.smeta { font-size: 13px; color: var(--muted); }
+.stot { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.range { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.hero { margin-top: 14px; background: var(--accent); color: var(--accent-fg); border-radius: 16px; padding: 18px 18px 16px; }
+.hlabel { font-size: 13px; font-weight: 600; letter-spacing: .04em; opacity: .9; }
+.hbig { font: 700 40px/1.1 var(--font-display); letter-spacing: -0.02em; margin: 4px 0 14px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.hsub { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 0; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.28); }
+.hsub dt { font-size: 12px; opacity: .85; }
+.hsub dd { margin: 0; font-weight: 700; font-size: 16px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.ract { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.copybox { margin-top: 10px; min-height: 140px; font-size: 14px; }
+.rsec { margin-top: 24px; }
+.rsec h2 { margin-bottom: 8px; }
+.rlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.rtop { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.rname { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.rval { font-variant-numeric: tabular-nums; font-weight: 600; text-align: right; flex: none; }
+.rsub { font-size: 13px; color: var(--muted); }
+.bar { height: 6px; border-radius: 3px; background: var(--surface-2); margin-top: 5px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+
+.nav {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--surface); border-top: 1px solid var(--line);
+  padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
+}
+.nav-in { max-width: 560px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+.nav a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 52px; border-radius: 10px; color: var(--muted); text-decoration: none; font-size: 12px; font-weight: 600; }
+.nav a[aria-current="page"] { color: var(--accent); background: var(--accent-soft); }
+.nav svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+.overlay { position: fixed; inset: 0; z-index: 50; background: rgba(8, 14, 12, .55); display: flex; align-items: flex-end; justify-content: center; }
+.sheet {
+  background: var(--surface); width: 100%; max-width: 560px; max-height: 92%; overflow-y: auto; border-radius: 18px 18px 0 0;
+  padding: 16px max(16px, env(safe-area-inset-right, 0px)) calc(18px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+}
+.sh-h { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.x { width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--surface-2); font-size: 22px; line-height: 1; cursor: pointer; }
+.field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; min-width: 0; }
+.field label { font-size: 13px; font-weight: 600; color: var(--muted); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.stepper { display: flex; gap: 6px; }
+.stepper .btn { padding-inline: 0; width: 44px; flex: none; }
+.stepper input { text-align: center; }
+.total { margin: 0 0 14px; font: 700 18px/1.2 var(--font-display); font-variant-numeric: tabular-nums; }
+.thumbrow { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 14px; }
+.thumb-prev { position: relative; width: 84px; aspect-ratio: 3 / 4; border-radius: 8px; overflow: hidden; flex: none; background: var(--surface-2); }
+.thumb-prev img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.thumb-prev .ph { padding: 8px; }
+.thumb-btns { display: flex; flex-direction: column; gap: 8px; min-width: 0; flex: 1; }
+.hint { margin: 0; font-size: 12px; color: var(--muted); }
+.err { margin: 0 0 12px; color: var(--danger); font-weight: 600; font-size: 14px; }
+.sh-f { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
+.sp { flex: 1; }
+.toast {
+  position: fixed; z-index: 60; left: 50%; transform: translateX(-50%); bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  max-width: calc(100% - 32px); background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: 600; text-align: center;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Katalog Almathba'ah</h1>
+    <p class="status" id="status"></p>
+  </header>
+
+  <main>
+    <section id="v-katalog">
+      <div class="tools">
+        <input type="search" id="q" placeholder="Cari judul, penulis, atau ISBN" aria-label="Cari buku" autocomplete="off">
+        <button type="button" class="btn primary" data-act="new-book">+ Buku</button>
+      </div>
+      <div class="chips" id="chips" role="group" aria-label="Filter kategori"></div>
+      <p class="count" id="count"></p>
+      <div class="grid" id="grid"></div>
+    </section>
+
+    <section id="v-penjualan" hidden>
+      <div class="sec-h">
+        <h2>Catatan penjualan</h2>
+        <button type="button" class="btn primary" data-act="new-sale">+ Catat penjualan</button>
+      </div>
+      <div id="sales"></div>
+    </section>
+
+    <section id="v-rekap" hidden>
+      <div class="sec-h"><h2>Rekap penjualan</h2></div>
+      <div class="chips" id="pchips" role="group" aria-label="Periode rekap"></div>
+      <div class="range" id="range" hidden>
+        <div class="field"><label for="rg-from">Dari tanggal</label><input type="date" id="rg-from"></div>
+        <div class="field"><label for="rg-to">Sampai tanggal</label><input type="date" id="rg-to"></div>
+      </div>
+      <div id="rekap-out"></div>
+      <textarea id="copybox" class="copybox" readonly hidden aria-label="Teks rekap"></textarea>
+      <div class="rsec" id="backup">
+        <h2>Cadangan data</h2>
+        <p class="rsub" id="bk-info" style="margin:0 0 10px"></p>
+        <div class="ract" style="margin-top:0">
+          <button type="button" class="btn primary" data-act="backup">Simpan cadangan</button>
+          <button type="button" class="btn" data-act="restore" id="restore-btn">Pulihkan dari cadangan</button>
+        </div>
+        <input type="file" id="restore-file" accept=".json,application/json" hidden>
+        <p class="hint" style="margin-top:10px">Cadangan berisi seluruh katalog, thumbnail, dan penjualan dalam satu berkas. Simpan di Google Drive atau kirim ke WhatsApp sendiri. Pemulihan mengganti semua data di perangkat ini.</p>
+      </div>
+    </section>
+  </main>
+</div>
+
+<nav class="nav" aria-label="Menu utama">
+  <div class="nav-in">
+    <a href="#katalog" data-tab="katalog"><svg viewBox="0 0 24 24"><path d="M5 4h10a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h10"/></svg>Katalog</a>
+    <a href="#penjualan" data-tab="penjualan"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>Penjualan</a>
+    <a href="#rekap" data-tab="rekap"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/></svg>Rekap</a>
+  </div>
+</nav>
+
+<div class="overlay" id="ov-book" hidden>
+  <form class="sheet" id="f-book" role="dialog" aria-modal="true" aria-labelledby="bk-h" novalidate>
+    <div class="sh-h"><h2 id="bk-h">Edit buku</h2><button type="button" class="x" data-act="close" aria-label="Tutup">×</button></div>
+    <div class="thumbrow">
+      <div class="thumb-prev" id="bk-prev"></div>
+      <div class="thumb-btns">
+        <label for="bk-file" class="hint" style="font-weight:600">Thumbnail sampul</label>
+        <input type="file" id="bk-file" accept="image/*">
+        <button type="button" class="btn sm" id="bk-clear" data-act="thumb-clear">Hapus gambar</button>
+        <p class="hint">Gambar dipotong otomatis ke rasio 3:4.</p>
+      </div>
+    </div>
+    <div class="field"><label for="bk-title">Judul</label><input type="text" id="bk-title" autocomplete="off"></div>
+    <div class="grid2">
+      <div class="field"><label for="bk-cat">Kategori</label><input type="text" id="bk-cat" list="cat-list" autocomplete="off"><datalist id="cat-list"></datalist></div>
+      <div class="field"><label for="bk-price">Harga (Rp)</label><input type="number" id="bk-price" inputmode="numeric" min="0" step="500"></div>
+    </div>
+    <div class="field"><label for="bk-author">Penulis / penyusun</label><input type="text" id="bk-author" autocomplete="off"></div>
+    <div class="grid2">
+      <div class="field"><label for="bk-pages">Halaman</label><input type="text" id="bk-pages" autocomplete="off"></div>
+      <div class="field"><label for="bk-size">Ukuran</label><input type="text" id="bk-size" autocomplete="off"></div>
+    </div>
+    <div class="field"><label for="bk-isbn">ISBN / QRCBN</label><input type="text" id="bk-isbn" autocomplete="off"></div>
+    <div class="field"><label for="bk-note">Catatan</label><textarea id="bk-note"></textarea></div>
+    <p class="err" id="bk-err" role="alert" hidden></p>
+    <div class="sh-f">
+      <button type="button" class="btn danger" id="bk-del" data-act="del-book">Hapus buku</button>
+      <span class="sp"></span>
+      <button type="button" class="btn" data-act="close">Batal</button>
+      <button type="submit" class="btn primary" id="bk-save">Simpan</button>
+    </div>
+  </form>
+</div>
+
+<div class="overlay" id="ov-sale" hidden>
+  <form class="sheet" id="f-sale" role="dialog" aria-modal="true" aria-labelledby="sl-h" novalidate>
+    <div class="sh-h"><h2 id="sl-h">Catat penjualan</h2><button type="button" class="x" data-act="close" aria-label="Tutup">×</button></div>
+    <div class="field"><label for="sf-book">Buku</label><select id="sf-book"></select></div>
+    <div class="grid2">
+      <div class="field"><label for="sf-date">Tanggal</label><input type="date" id="sf-date"></div>
+      <div class="field"><label for="sf-qty">Jumlah</label>
+        <div class="stepper">
+          <button type="button" class="btn" data-act="qty-" aria-label="Kurangi jumlah">−</button>
+          <input type="number" id="sf-qty" inputmode="numeric" min="1" step="1" value="1">
+          <button type="button" class="btn" data-act="qty+" aria-label="Tambah jumlah">+</button>
+        </div>
+      </div>
+    </div>
+    <div class="field"><label for="sf-price">Harga satuan (Rp)</label><input type="number" id="sf-price" inputmode="numeric" min="0" step="500"></div>
+    <p class="total" id="sf-total"></p>
+    <div class="grid2">
+      <div class="field"><label for="sf-buyer">Pembeli (opsional)</label><input type="text" id="sf-buyer" autocomplete="off"></div>
+      <div class="field"><label for="sf-channel">Saluran</label>
+        <select id="sf-channel"><option>Instagram</option><option>WhatsApp</option><option>Marketplace</option><option>Langsung</option></select>
+      </div>
+    </div>
+    <div class="field"><label for="sf-note">Catatan (opsional)</label><input type="text" id="sf-note" autocomplete="off"></div>
+    <p class="err" id="sl-err" role="alert" hidden></p>
+    <div class="sh-f">
+      <button type="button" class="btn danger" id="sl-del" data-act="del-sale">Hapus</button>
+      <span class="sp"></span>
+      <button type="button" class="btn" data-act="close">Batal</button>
+      <button type="submit" class="btn primary" id="sl-save">Simpan</button>
+    </div>
+  </form>
+</div>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(function () {
+'use strict';
+
+/*RAW_START*/
+const CAT = { I: 'Buku Islami', T: 'Buku Teks Pelajaran', M: 'Buku Motivasi dan Pengembangan Diri', A: 'Buku Anak' };
+const SRC = {
+  I: 'https://almathbaah.id/product-category/buku-islami/',
+  T: 'https://almathbaah.id/product-category/buku-ajar/',
+  M: 'https://almathbaah.id/product-category/buku-pengembangan-diri/',
+  A: 'https://almathbaah.id/product-category/buku-anak/'
+};
+const RAW = [
+  ['I', '3 Pokok Pembatal Iman', 54000],
+  ['I', 'Ada Apa dengan Pernikahan?', 46000],
+  ['I', 'Adab dan Etika Pengusaha Muslim', 60000],
+  ['I', 'Buku 40 Hadis Pilihan – Mudah Dihafalkan dan Diajarkan', 50000],
+  ['I', 'Buku Melejitkan Produktivitas Wakaf di Lembaga Pendidikan Islam', 56000],
+  ['I', 'Buku Sepak Bola antara Maslahat dan Mafsadat dalam Pandangan Syariat', 35000],
+  ['I', 'Dzikir Pagi Petang dan Setelah Shalat Fardhu Berdasarkan Al-Qur’an dan As-Sunnah', 20000],
+  ['I', 'Kamus Saku Bahasa Arab Inggris', 29000],
+  ['I', 'Kamus Saku Tiga Bahasa Taaj Al-Labiib', 25000],
+  ['I', 'Membangun Karakter Rabbani', 83000],
+  ['I', 'Panduan Praktis Pengurusan Jenazah (Disertai Gambar Penjelas)', 18000],
+  ['I', 'Panduan Praktis Wudhu dan Mandi Junub (Disertai Gambar Penjelas)', 20000],
+  ['I', 'Syarah Ringkas Manzhumah al-Wadhihah fi Tajwid al-Fatihah', 50000],
+  ['I', 'The Miracle of Iman', 57000],
+  ['I', 'Yuk Belajar Waris (Vol. 1)', 70000],
+  ['T', 'Buku Teks Pelajaran Bahasa Indonesia Kelas 10', 55000],
+  ['T', 'Buku Teks Pelajaran Bahasa Indonesia Kelas 11', 55000, { author: 'Ikhsan Abdul Aziz, S.Pd.', pages: '140 halaman', isbn: 'ISBN masih dalam proses' }],
+  ['T', 'Buku Teks Pelajaran Bahasa Indonesia Kelas 12', 55000],
+  ['T', 'Buku Teks Pelajaran Bahasa Indonesia SMP/MTs Kelas IX Fase D', null],
+  ['T', 'Buku Teks Pelajaran Bahasa Indonesia SMP/MTs Kelas VII Fase D', 40000],
+  ['T', 'Buku Teks Pelajaran Bahasa Indonesia SMP/MTs Kelas VIII Fase D', 40000],
+  ['M', 'But Why? Bagaimana Keadaan Umat Manusia di Zaman Ini?', 60000],
+  ['M', 'Catatan di Balik Dinding (Seri Pertama Membangun Fondasi)', 55000],
+  ['M', 'Catatan Santri', 53000, { author: 'M. Abdan Syakura, M. Rifa Razan Iskandar, Haitsam Sayyaf Buldan, dan teman-teman', pages: '124 halaman', size: '21 × 14,8 cm', isbn: 'QRCBN 62-6092-4216-197', note: 'Tentang Pesantren; refleksi pengalaman dan kehidupan santri' }],
+  ['M', 'Menebar Kebaikan dengan Tulisan', 50000],
+  ['M', 'Santri Tidak Selalu Baik-Baik Saja', 56000, { author: 'Ikhsan A. A.', pages: '172 halaman isi', size: 'B-6 (128 × 182 mm)', isbn: 'ISBN dalam proses pengajuan' }],
+  ['M', 'Tentang Pesantren', 50000],
+  ['M', 'Untuk Saya yang Sering Mengeluh', 57000],
+  ['A', '70 Peribahasa untuk Anak Muslim dan Muslimah', 55000],
+  ['A', 'Mengenal Huruf Bahasa Indonesia', 56000]
+];
+function defaultBooks() {
+  return RAW.map(function (r, i) {
+    const x = r[3] || {};
+    return {
+      id: 'b' + String(i + 1).padStart(2, '0'), title: r[1], category: CAT[r[0]], price: r[2],
+      author: x.author || '', pages: x.pages || '', size: x.size || '', isbn: x.isbn || '', note: x.note || '',
+      source: SRC[r[0]], thumb: ''
+    };
+  });
+}
+/*RAW_END*/
+
+const $ = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const rp = n => 'Rp' + String(Math.round(Number(n) || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+const pad = n => String(n).padStart(2, '0');
+const ymd = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+const todayStr = () => ymd(new Date());
+const DAYS = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+function parseYmd(s) { const p = String(s || '').split('-').map(Number); return new Date(p[0], (p[1] || 1) - 1, p[2] || 1); }
+function fmtShort(s) { if (!s) return ''; const d = parseYmd(s); return d.getDate() + ' ' + MON[d.getMonth()] + ' ' + d.getFullYear(); }
+function fmtDate(s) { if (!s) return ''; const d = parseYmd(s); return DAYS[d.getDay()] + ', ' + fmtShort(s); }
+const shortCat = c => String(c || '').replace(/^Buku\s+/i, '') || 'Tanpa kategori';
+const catRank = c => { const i = Object.values(CAT).indexOf(c); return i < 0 ? 99 : i; };
+const HUES = { 'islami': 165, 'teks pelajaran': 212, 'motivasi dan pengembangan diri': 24, 'anak': 44 };
+function hue(cat) {
+  const k = shortCat(cat).toLowerCase();
+  if (k in HUES) return HUES[k];
+  let h = 0; for (const ch of k) h = (h * 31 + ch.charCodeAt(0)) % 360;
+  return h;
+}
+const byTitle = (a, b) => String(a.title).localeCompare(String(b.title), 'id', { numeric: true });
+const genId = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const hasPrice = b => b.price !== null && b.price !== undefined && b.price !== '' && Number.isFinite(Number(b.price));
+
+const LS = {
+  get(k) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
+};
+
+const TABS = ['katalog', 'penjualan', 'rekap'];
+const S = { books: defaultBooks(), sales: [], mode: 'connecting', timeout: false, stale: false, tab: 'katalog', q: '', cat: '', period: 'bulan', from: '', to: '', canDl: false };
+const E = { bookId: null, thumb: '', saleId: null };
+let dbh = null, dl = null, toastTimer = null;
+
+/* ---------- penyimpanan ---------- */
+function loadLocal() {
+  const b = LS.get('almathbaah.books'), s = LS.get('almathbaah.sales');
+  S.books = Array.isArray(b) ? b : defaultBooks();
+  S.sales = Array.isArray(s) ? s : [];
+}
+function saveLocal() {
+  const a = LS.set('almathbaah.books', S.books), b = LS.set('almathbaah.sales', S.sales);
+  if (!(a && b)) toast('Penyimpanan perangkat penuh atau diblokir. Perubahan belum tersimpan.');
+}
+function canWrite() {
+  if (S.mode === 'db' || S.mode === 'local') return true;
+  toast(S.mode === 'connecting' ? 'Masih menyambung ke penyimpanan. Coba lagi sebentar.' : 'Penyimpanan tidak dapat dipakai saat ini.');
+  return false;
+}
+async function putBook(b) {
+  if (S.mode === 'db') { const d = Object.assign({}, b); delete d.id; await dbh.collection('books').doc(b.id).set(d); return; }
+  const i = S.books.findIndex(x => x.id === b.id);
+  if (i < 0) S.books.push(b); else S.books[i] = b;
+  saveLocal(); render();
+}
+async function removeBook(id) {
+  if (S.mode === 'db') { await dbh.collection('books').doc(id).delete(); return; }
+  S.books = S.books.filter(x => x.id !== id); saveLocal(); render();
+}
+async function putSale(s) {
+  if (S.mode === 'db') { const d = Object.assign({}, s); delete d.id; await dbh.collection('sales').doc(s.id).set(d); return; }
+  const i = S.sales.findIndex(x => x.id === s.id);
+  if (i < 0) S.sales.push(s); else S.sales[i] = s;
+  saveLocal(); render();
+}
+async function removeSale(id) {
+  if (S.mode === 'db') { await dbh.collection('sales').doc(id).delete(); return; }
+  S.sales = S.sales.filter(x => x.id !== id); saveLocal(); render();
+}
+function docsToList(snap) { return snap.docs.map(d => Object.assign({ id: d.id }, d.data())); }
+
+async function initStore() {
+  const use = window.claude && window.claude.use ? n => window.claude.use(n).catch(() => null) : () => Promise.resolve(null);
+  const [db, dls] = await Promise.all([use('db'), use('downloads')]);
+  dl = dls; S.canDl = true;
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+  if (!db) { S.mode = 'local'; loadLocal(); render(); return; }
+  dbh = db;
+  let gotB = false, gotS = false;
+  const timer = setTimeout(() => { if (!(gotB && gotS)) { S.timeout = true; renderStatus(); } }, 10000);
+  const done = () => { if (gotB && gotS) { clearTimeout(timer); S.timeout = false; S.mode = 'db'; } };
+  const onErr = () => { clearTimeout(timer); S.mode = 'error'; render(); };
+  db.collection('books').onSnapshot(snap => { gotB = true; S.books = docsToList(snap); S.stale = snap.metadata.fromCache; done(); render(); }, onErr);
+  db.collection('sales').onSnapshot(snap => { gotS = true; S.sales = docsToList(snap); done(); render(); }, onErr);
+}
+
+/* ---------- tampilan umum ---------- */
+function toast(m) {
+  const el = $('#toast'); el.textContent = m; el.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.hidden = true; }, 3200);
+}
+function renderStatus() {
+  let t, c;
+  if (S.mode === 'db') { t = 'Tersimpan online, bisa dibuka dari perangkat lain'; c = 'ok'; }
+  else if (S.mode === 'local') { t = 'Disimpan di perangkat ini · ' + backupNote(); const lb = LS.get('almathbaah.lastBackup'); c = (S.sales.length && (!lb || daysSince(lb) > 7)) ? 'bad' : 'warn'; }
+  else if (S.mode === 'connecting') { t = S.timeout ? 'Belum tersambung ke penyimpanan online' : 'Menyambung ke penyimpanan…'; c = 'warn'; }
+  else { t = 'Penyimpanan online tidak tersedia'; c = 'bad'; }
+  $('#status').innerHTML = '<i class="dot ' + c + '"></i>' + esc(t);
+}
+function bookMap() { return new Map(S.books.map(b => [b.id, b])); }
+function coverHtml(b) {
+  if (b.thumb) return '<img src="' + esc(b.thumb) + '" alt="">';
+  return '<span class="ph" style="--h:' + hue(b.category) + '"><span class="ph-k">Almathba\'ah</span><span class="ph-b"><span class="ph-c">' + esc(shortCat(b.category)) + '</span><span class="ph-add">+ Sampul</span></span></span>';
+}
+function miniThumb(b, cat) {
+  const h = hue(b ? b.category : cat);
+  return '<span class="sth" style="--h:' + h + '">' + (b && b.thumb ? '<img src="' + esc(b.thumb) + '" alt="">' : '') + '</span>';
+}
+
+/* ---------- katalog ---------- */
+function soldMap() { const m = new Map(); for (const s of S.sales) m.set(s.bookId, (m.get(s.bookId) || 0) + (Number(s.qty) || 0)); return m; }
+function renderChips() {
+  const counts = new Map(); S.books.forEach(b => counts.set(b.category, (counts.get(b.category) || 0) + 1));
+  const cats = Array.from(counts.keys()).sort((a, b) => catRank(a) - catRank(b) || String(a).localeCompare(String(b)));
+  let h = '<button type="button" class="chip" data-act="cat" data-v="" aria-pressed="' + (S.cat === '') + '">Semua (' + S.books.length + ')</button>';
+  for (const c of cats) h += '<button type="button" class="chip" data-act="cat" data-v="' + esc(c) + '" aria-pressed="' + (S.cat === c) + '">' + esc(shortCat(c)) + ' (' + counts.get(c) + ')</button>';
+  $('#chips').innerHTML = h;
+}
+function renderGrid() {
+  const sold = soldMap(), q = S.q.trim().toLowerCase();
+  const list = S.books.filter(b => (!S.cat || b.category === S.cat) && (!q || [b.title, b.author, b.isbn, b.category, b.note].join(' ').toLowerCase().indexOf(q) >= 0)).sort(byTitle);
+  $('#count').textContent = list.length === S.books.length ? list.length + ' buku' : list.length + ' dari ' + S.books.length + ' buku';
+  const g = $('#grid');
+  if (!list.length) {
+    if (!S.books.length && !S.stale && (S.mode === 'db' || S.mode === 'local')) {
+      g.innerHTML = '<div class="empty" style="grid-column:1/-1"><p>Katalog masih kosong. Muat 30 buku dari data awal Almathba\'ah (9 November 2026), atau tambah buku sendiri.</p><button type="button" class="btn primary" data-act="seed">Muat 30 buku awal</button></div>';
+    } else {
+      g.innerHTML = '<div class="empty" style="grid-column:1/-1"><p>Tidak ada buku yang cocok dengan pencarian.</p></div>';
+    }
+    return;
+  }
+  g.innerHTML = list.map(b => {
+    const n = sold.get(b.id) || 0;
+    return '<article class="card">' +
+      '<button type="button" class="cover" data-act="edit-book" data-id="' + esc(b.id) + '" aria-label="Edit ' + esc(b.title) + '">' + coverHtml(b) + '</button>' +
+      '<div class="cbody"><div class="ccat">' + esc(shortCat(b.category)) + '</div><h3>' + esc(b.title) + '</h3>' +
+      '<div class="cprice">' + (hasPrice(b) ? rp(b.price) : '<span class="muted">Harga belum diisi</span>') + '</div>' +
+      (n ? '<div class="csold">Terjual ' + n + ' eks</div>' : '') +
+      '<div class="cacts"><button type="button" class="btn sm primary" data-act="sell" data-id="' + esc(b.id) + '">Jual</button><button type="button" class="btn sm" data-act="edit-book" data-id="' + esc(b.id) + '">Edit</button></div></div>' +
+      '</article>';
+  }).join('');
+}
+
+/* ---------- penjualan ---------- */
+function renderSales() {
+  const el = $('#sales'), bm = bookMap();
+  const rows = S.sales.slice().sort((a, b) => String(b.date).localeCompare(String(a.date)) || (b.createdAt || 0) - (a.createdAt || 0));
+  if (!rows.length) {
+    el.innerHTML = '<div class="empty" style="margin-top:14px"><p>Belum ada penjualan tercatat. Ketuk "+ Catat penjualan", atau tekan Jual pada kartu buku di Katalog.</p><button type="button" class="btn primary" data-act="new-sale">+ Catat penjualan</button></div>';
+    return;
+  }
+  const totals = new Map();
+  rows.forEach(r => totals.set(r.date, (totals.get(r.date) || 0) + (Number(r.qty) || 0) * (Number(r.price) || 0)));
+  let h = '', cur = null;
+  for (const r of rows) {
+    if (r.date !== cur) { cur = r.date; h += '<div class="dayh"><span>' + esc(fmtDate(r.date)) + '</span><span>' + rp(totals.get(r.date)) + '</span></div>'; }
+    const b = bm.get(r.bookId), title = b ? b.title : r.title;
+    const meta = (Number(r.qty) || 0) + ' × ' + rp(r.price) + (r.channel ? ' · ' + esc(r.channel) : '') + (r.buyer ? ' · ' + esc(r.buyer) : '');
+    h += '<button type="button" class="srow" data-act="edit-sale" data-id="' + esc(r.id) + '">' + miniThumb(b, r.category) +
+      '<span class="smain"><span class="stitle">' + esc(title) + '</span><span class="smeta">' + meta + '</span></span>' +
+      '<span class="stot">' + rp((Number(r.qty) || 0) * (Number(r.price) || 0)) + '</span></button>';
+  }
+  el.innerHTML = h;
+}
+
+/* ---------- rekap ---------- */
+const PERIODS = [['hari', 'Hari ini'], ['7', '7 hari'], ['bulan', 'Bulan ini'], ['semua', 'Semua'], ['rentang', 'Pilih tanggal']];
+function periodRange() {
+  const now = new Date(), t = todayStr(), y = now.getFullYear(), m = now.getMonth();
+  if (S.period === 'hari') return { from: t, to: t, label: fmtDate(t) };
+  if (S.period === '7') { const f = ymd(new Date(y, m, now.getDate() - 6)); return { from: f, to: t, label: fmtShort(f) + ' – ' + fmtShort(t) }; }
+  if (S.period === 'bulan') return { from: ymd(new Date(y, m, 1)), to: ymd(new Date(y, m + 1, 0)), label: MON[m] + ' ' + y };
+  if (S.period === 'semua') return { from: '', to: '', label: 'Semua waktu' };
+  let f = S.from, e = S.to;
+  if (f && e && f > e) { const x = f; f = e; e = x; }
+  return { from: f, to: e, label: (f ? fmtShort(f) : 'awal') + ' – ' + (e ? fmtShort(e) : 'sekarang') };
+}
+function bump(map, key, name, q, t) { const o = map.get(key) || { name: name, qty: 0, rev: 0, n: 0 }; o.qty += q; o.rev += t; o.n += 1; map.set(key, o); }
+function aggregate(rows) {
+  const bm = bookMap(), A = { rev: 0, qty: 0, n: rows.length, byBook: new Map(), byDay: new Map(), byCat: new Map(), byCh: new Map() };
+  for (const r of rows) {
+    const q = Number(r.qty) || 0, t = q * (Number(r.price) || 0), b = bm.get(r.bookId);
+    A.rev += t; A.qty += q;
+    bump(A.byBook, r.bookId, b ? b.title : r.title, q, t);
+    bump(A.byDay, r.date, fmtDate(r.date), q, t);
+    bump(A.byCat, b ? b.category : r.category, shortCat(b ? b.category : r.category), q, t);
+    bump(A.byCh, r.channel || '-', r.channel || 'Tanpa saluran', q, t);
+  }
+  return A;
+}
+function periodRows() { const p = periodRange(); return S.sales.filter(s => (!p.from || s.date >= p.from) && (!p.to || s.date <= p.to)); }
+function listHtml(items, maxOf, valFn, subFn) {
+  const max = Math.max.apply(null, items.map(maxOf).concat([1]));
+  return '<ul class="rlist">' + items.map(it => '<li><div class="rtop"><span class="rname">' + esc(it.name) + '</span><span class="rval">' + valFn(it) + '</span></div>' +
+    (subFn ? '<div class="rsub">' + subFn(it) + '</div>' : '') + '<div class="bar"><i style="width:' + Math.max(2, Math.round(maxOf(it) / max * 100)) + '%"></i></div></li>').join('') + '</ul>';
+}
+function renderRekap() {
+  $('#pchips').innerHTML = PERIODS.map(p => '<button type="button" class="chip" data-act="period" data-v="' + p[0] + '" aria-pressed="' + (S.period === p[0]) + '">' + p[1] + '</button>').join('');
+  $('#range').hidden = S.period !== 'rentang';
+  $('#bk-info').textContent = backupNote();
+  $('#restore-btn').hidden = S.mode !== 'local';
+  const p = periodRange(), rows = periodRows(), A = aggregate(rows);
+  let h = '<div class="hero"><div class="hlabel">Pendapatan · ' + esc(p.label) + '</div><div class="hbig">' + rp(A.rev) + '</div>' +
+    '<dl class="hsub"><div><dt>Eksemplar</dt><dd>' + A.qty + '</dd></div><div><dt>Transaksi</dt><dd>' + A.n + '</dd></div><div><dt>Rata-rata</dt><dd>' + rp(A.n ? A.rev / A.n : 0) + '</dd></div></dl></div>';
+  if (!rows.length) {
+    h += '<div class="empty" style="margin-top:14px"><p>Belum ada penjualan pada periode ini. Catat penjualan di tab Penjualan, lalu rekapnya muncul di sini.</p></div>';
+    $('#rekap-out').innerHTML = h; return;
+  }
+  h += '<div class="ract"><button type="button" class="btn" data-act="copy">Salin rekap</button>' + (S.canDl ? '<button type="button" class="btn" data-act="csv">Unduh CSV</button>' : '') + '</div>';
+  const days = Array.from(A.byDay.entries()).sort((a, b) => b[0].localeCompare(a[0])).map(e => e[1]);
+  h += '<div class="rsec"><h2>Per hari</h2>' + listHtml(days, o => o.rev, o => rp(o.rev), o => o.n + ' transaksi · ' + o.qty + ' eks') + '</div>';
+  const books = Array.from(A.byBook.values()).sort((a, b) => b.qty - a.qty || b.rev - a.rev);
+  h += '<div class="rsec"><h2>Buku terjual</h2>' + listHtml(books, o => o.qty, o => o.qty + ' eks · ' + rp(o.rev)) + '</div>';
+  const cats = Array.from(A.byCat.values()).sort((a, b) => b.rev - a.rev);
+  h += '<div class="rsec"><h2>Per kategori</h2>' + listHtml(cats, o => o.rev, o => o.qty + ' eks · ' + rp(o.rev)) + '</div>';
+  const chs = Array.from(A.byCh.values()).sort((a, b) => b.rev - a.rev);
+  h += '<div class="rsec"><h2>Per saluran</h2>' + listHtml(chs, o => o.rev, o => o.qty + ' eks · ' + rp(o.rev)) + '</div>';
+  $('#rekap-out').innerHTML = h;
+}
+function recapText() {
+  const p = periodRange(), A = aggregate(periodRows());
+  const books = Array.from(A.byBook.values()).sort((a, b) => b.qty - a.qty || b.rev - a.rev);
+  let t = "Rekap penjualan Almathba'ah\nPeriode: " + p.label + '\nPendapatan: ' + rp(A.rev) + ' (' + A.qty + ' eksemplar, ' + A.n + ' transaksi)\n\nPer buku:\n';
+  t += books.map(o => '- ' + o.name + ': ' + o.qty + ' eks, ' + rp(o.rev)).join('\n');
+  if (A.byDay.size > 1) {
+    t += '\n\nPer hari:\n' + Array.from(A.byDay.values()).reverse().map(o => '- ' + o.name + ': ' + rp(o.rev)).join('\n');
+  }
+  return t;
+}
+async function copyRecap() {
+  const t = recapText();
+  try { await navigator.clipboard.writeText(t); toast('Rekap disalin.'); }
+  catch (e) { const b = $('#copybox'); b.value = t; b.hidden = false; b.focus(); b.select(); toast('Salin manual dari kotak teks.'); }
+}
+function csvCell(v) { v = String(v == null ? '' : v); return /[";,\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+async function saveFile(name, data, mime) {
+  if (dl) return dl.save({ filename: name, data: data });
+  const url = URL.createObjectURL(new Blob([data], { type: mime }));
+  const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+async function downloadCsv() {
+  const bm = bookMap(), rows = periodRows().sort((a, b) => String(a.date).localeCompare(String(b.date)) || (a.createdAt || 0) - (b.createdAt || 0));
+  const out = [['Tanggal', 'Judul', 'Kategori', 'Jumlah', 'Harga satuan', 'Total', 'Pembeli', 'Saluran', 'Catatan'].join(';')];
+  for (const r of rows) {
+    const b = bm.get(r.bookId), q = Number(r.qty) || 0, pr = Number(r.price) || 0;
+    out.push([r.date, b ? b.title : r.title, b ? b.category : r.category, q, pr, q * pr, r.buyer, r.channel, r.note].map(csvCell).join(';'));
+  }
+  try { await saveFile('penjualan-almathbaah-' + todayStr() + '.csv', '﻿' + out.join('\r\n'), 'text/csv;charset=utf-8'); toast('CSV disimpan.'); }
+  catch (e) { if (!e || e.code !== 'declined') toast('CSV tidak dapat disimpan di sini.'); }
+}
+
+function daysSince(ts) { return Math.floor((Date.now() - ts) / 86400000); }
+function backupNote() {
+  const t = LS.get('almathbaah.lastBackup');
+  if (!t) return S.sales.length ? 'Belum pernah dicadangkan.' : 'Belum ada cadangan.';
+  const d = daysSince(t);
+  return 'Cadangan terakhir: ' + (d === 0 ? 'hari ini' : d + ' hari lalu') + '.';
+}
+async function doBackup() {
+  const payload = { app: 'almathbaah-katalog', version: 1, exportedAt: new Date().toISOString(), books: S.books, sales: S.sales };
+  try {
+    await saveFile('cadangan-almathbaah-' + todayStr() + '.json', JSON.stringify(payload), 'application/json');
+    LS.set('almathbaah.lastBackup', Date.now()); toast('Cadangan disimpan.'); renderRekap(); renderStatus();
+  } catch (e) { if (!e || e.code !== 'declined') toast('Cadangan gagal disimpan.'); }
+}
+async function doRestore(file) {
+  try {
+    const d = JSON.parse(await file.text());
+    if (!d || d.app !== 'almathbaah-katalog' || !Array.isArray(d.books) || !Array.isArray(d.sales)) throw new Error('format');
+    S.books = d.books; S.sales = d.sales; saveLocal(); render();
+    toast('Pulih: ' + d.books.length + ' buku, ' + d.sales.length + ' penjualan.');
+  } catch (e) { toast('Berkas ini bukan cadangan Katalog Almathba\'ah yang valid.'); }
+}
+
+function render() {
+  renderStatus();
+  if (S.tab === 'katalog') { renderChips(); renderGrid(); }
+  else if (S.tab === 'penjualan') renderSales();
+  else renderRekap();
+}
+
+/* ---------- lembar buku ---------- */
+function showErr(id, m) { const el = $('#' + id); el.textContent = m; el.hidden = false; }
+function lockScroll(on) { document.documentElement.style.overflow = on ? 'hidden' : ''; }
+function closeSheets() { $('#ov-book').hidden = true; $('#ov-sale').hidden = true; lockScroll(false); }
+function resetArm(btn, label) { clearTimeout(btn._t); delete btn.dataset.armed; btn.textContent = label; }
+function arm(btn, label, fn) {
+  if (btn.dataset.armed) { resetArm(btn, label); fn(); return; }
+  btn.dataset.armed = '1'; btn.textContent = 'Ketuk lagi untuk hapus';
+  btn._t = setTimeout(() => resetArm(btn, label), 4000);
+}
+function paintPrev() {
+  const b = S.books.find(x => x.id === E.bookId);
+  const cat = $('#bk-cat').value || (b ? b.category : '');
+  $('#bk-prev').innerHTML = coverHtml({ thumb: E.thumb, category: cat });
+  $('#bk-clear').disabled = !E.thumb;
+}
+function openBook(id) {
+  const b = id ? S.books.find(x => x.id === id) : null;
+  if (id && !b) return;
+  E.bookId = id || null; E.thumb = b ? (b.thumb || '') : '';
+  $('#bk-h').textContent = b ? 'Edit buku' : 'Tambah buku';
+  $('#bk-title').value = b ? b.title : '';
+  $('#bk-cat').value = b ? b.category : (S.cat || '');
+  $('#bk-price').value = b && hasPrice(b) ? b.price : '';
+  $('#bk-author').value = b ? (b.author || '') : '';
+  $('#bk-pages').value = b ? (b.pages || '') : '';
+  $('#bk-size').value = b ? (b.size || '') : '';
+  $('#bk-isbn').value = b ? (b.isbn || '') : '';
+  $('#bk-note').value = b ? (b.note || '') : '';
+  $('#bk-file').value = '';
+  $('#bk-err').hidden = true;
+  $('#bk-save').disabled = false;
+  const del = $('#bk-del'); resetArm(del, 'Hapus buku'); del.hidden = !b;
+  const cats = Array.from(new Set(S.books.map(x => x.category))).sort((a, c) => catRank(a) - catRank(c));
+  $('#cat-list').innerHTML = cats.map(c => '<option value="' + esc(c) + '"></option>').join('');
+  paintPrev();
+  $('#ov-book').hidden = false; lockScroll(true); $('#f-book').scrollTop = 0;
+}
+function toThumb(file) {
+  return new Promise((res, rej) => {
+    const fr = new FileReader();
+    fr.onerror = () => rej(new Error('Gambar tidak bisa dibaca.'));
+    fr.onload = () => {
+      const img = new Image();
+      img.onerror = () => rej(new Error('Berkas ini bukan gambar yang didukung.'));
+      img.onload = () => {
+        const W = 300, H = 400, c = document.createElement('canvas'); c.width = W; c.height = H;
+        const g = c.getContext('2d'); g.fillStyle = '#ffffff'; g.fillRect(0, 0, W, H);
+        const sc = Math.max(W / img.width, H / img.height), w = img.width * sc, h = img.height * sc;
+        g.drawImage(img, (W - w) / 2, (H - h) / 2, w, h);
+        res(c.toDataURL('image/jpeg', 0.8));
+      };
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+async function submitBook(e) {
+  e.preventDefault();
+  if (!canWrite()) return;
+  const title = $('#bk-title').value.trim();
+  if (!title) { showErr('bk-err', 'Judul wajib diisi.'); return; }
+  const raw = $('#bk-price').value.trim(), price = raw === '' ? null : Math.round(Number(raw));
+  if (raw !== '' && (!Number.isFinite(price) || price < 0)) { showErr('bk-err', 'Harga harus berupa angka 0 atau lebih.'); return; }
+  const old = S.books.find(x => x.id === E.bookId) || {};
+  const book = {
+    id: E.bookId || genId('b'), title: title, category: $('#bk-cat').value.trim() || 'Tanpa kategori', price: price,
+    author: $('#bk-author').value.trim(), pages: $('#bk-pages').value.trim(), size: $('#bk-size').value.trim(),
+    isbn: $('#bk-isbn').value.trim(), note: $('#bk-note').value.trim(), source: old.source || '', thumb: E.thumb || ''
+  };
+  $('#bk-save').disabled = true;
+  try { await putBook(book); closeSheets(); toast('Buku disimpan.'); }
+  catch (err) { $('#bk-save').disabled = false; showErr('bk-err', 'Gagal menyimpan: ' + ((err && (err.message || err.code)) || 'coba lagi')); }
+}
+
+/* ---------- lembar penjualan ---------- */
+function bookOptions(selected, extra) {
+  const groups = new Map();
+  S.books.slice().sort(byTitle).forEach(b => { if (!groups.has(b.category)) groups.set(b.category, []); groups.get(b.category).push(b); });
+  let h = '<option value="">Pilih buku…</option>';
+  Array.from(groups.keys()).sort((a, b) => catRank(a) - catRank(b) || String(a).localeCompare(String(b))).forEach(c => {
+    h += '<optgroup label="' + esc(shortCat(c)) + '">' + groups.get(c).map(b => '<option value="' + esc(b.id) + '">' + esc(b.title) + (hasPrice(b) ? ' — ' + rp(b.price) : '') + '</option>').join('') + '</optgroup>';
+  });
+  if (extra) h += '<option value="' + esc(extra.bookId) + '">' + esc(extra.title) + ' (dihapus dari katalog)</option>';
+  return h;
+}
+function updateTotal() {
+  const q = parseInt($('#sf-qty').value, 10), p = Number($('#sf-price').value);
+  $('#sf-total').textContent = 'Total: ' + rp((q > 0 ? q : 0) * (p > 0 ? p : 0));
+}
+function openSale(opts) {
+  opts = opts || {};
+  const s = opts.id ? S.sales.find(x => x.id === opts.id) : null;
+  if (opts.id && !s) return;
+  E.saleId = s ? s.id : null;
+  const missing = s && !S.books.some(b => b.id === s.bookId) ? s : null;
+  $('#sf-book').innerHTML = bookOptions(null, missing);
+  $('#sl-h').textContent = s ? 'Edit penjualan' : 'Catat penjualan';
+  $('#sf-book').value = s ? s.bookId : (opts.bookId || '');
+  $('#sf-date').value = s ? s.date : todayStr();
+  $('#sf-qty').value = s ? s.qty : 1;
+  const bk = S.books.find(b => b.id === $('#sf-book').value);
+  $('#sf-price').value = s ? s.price : (bk && hasPrice(bk) ? bk.price : '');
+  $('#sf-buyer').value = s ? (s.buyer || '') : '';
+  let ch = s ? s.channel : (LS.get('almathbaah.lastChannel') || 'Instagram');
+  if (!Array.from($('#sf-channel').options).some(o => o.value === ch)) ch = 'Instagram';
+  $('#sf-channel').value = ch;
+  $('#sf-note').value = s ? (s.note || '') : '';
+  $('#sl-err').hidden = true; $('#sl-save').disabled = false;
+  const del = $('#sl-del'); resetArm(del, 'Hapus'); del.hidden = !s;
+  updateTotal();
+  $('#ov-sale').hidden = false; lockScroll(true); $('#f-sale').scrollTop = 0;
+}
+async function submitSale(e) {
+  e.preventDefault();
+  if (!canWrite()) return;
+  const bookId = $('#sf-book').value, date = $('#sf-date').value, qty = parseInt($('#sf-qty').value, 10), pr = $('#sf-price').value.trim(), price = Math.round(Number(pr));
+  if (!bookId) { showErr('sl-err', 'Pilih bukunya dulu.'); return; }
+  if (!date) { showErr('sl-err', 'Isi tanggal penjualan.'); return; }
+  if (!(qty >= 1)) { showErr('sl-err', 'Jumlah minimal 1.'); return; }
+  if (pr === '' || !Number.isFinite(price) || price < 0) { showErr('sl-err', 'Isi harga satuan dengan angka.'); return; }
+  const bk = S.books.find(b => b.id === bookId), old = S.sales.find(x => x.id === E.saleId) || {};
+  const sale = {
+    id: E.saleId || genId('s'), date: date, bookId: bookId, title: bk ? bk.title : (old.title || ''), category: bk ? bk.category : (old.category || ''),
+    qty: qty, price: price, buyer: $('#sf-buyer').value.trim(), channel: $('#sf-channel').value, note: $('#sf-note').value.trim(), createdAt: old.createdAt || Date.now()
+  };
+  $('#sl-save').disabled = true;
+  try { await putSale(sale); LS.set('almathbaah.lastChannel', sale.channel); closeSheets(); toast('Penjualan dicatat.'); }
+  catch (err) { $('#sl-save').disabled = false; showErr('sl-err', 'Gagal menyimpan: ' + ((err && (err.message || err.code)) || 'coba lagi')); }
+}
+async function seedBooks(btn) {
+  if (!canWrite()) return;
+  btn.disabled = true; btn.textContent = 'Memuat…';
+  try { for (const b of defaultBooks()) await putBook(b); toast('30 buku dimuat.'); }
+  catch (e) { btn.disabled = false; btn.textContent = 'Muat 30 buku awal'; toast('Gagal memuat katalog.'); }
+}
+
+/* ---------- peristiwa ---------- */
+document.addEventListener('click', function (e) {
+  const t = e.target.closest('[data-act]');
+  if (t) {
+    const a = t.dataset.act, id = t.dataset.id;
+    if (a === 'new-book') openBook(null);
+    else if (a === 'edit-book') openBook(id);
+    else if (a === 'sell') openSale({ bookId: id });
+    else if (a === 'new-sale') openSale();
+    else if (a === 'edit-sale') openSale({ id: id });
+    else if (a === 'close') closeSheets();
+    else if (a === 'thumb-clear') { E.thumb = ''; $('#bk-file').value = ''; paintPrev(); }
+    else if (a === 'del-book') arm(t, 'Hapus buku', async () => {
+      if (!canWrite()) return;
+      try { await removeBook(E.bookId); closeSheets(); toast('Buku dihapus. Riwayat penjualannya tetap ada.'); } catch (err) { showErr('bk-err', 'Gagal menghapus.'); }
+    });
+    else if (a === 'del-sale') arm(t, 'Hapus', async () => {
+      if (!canWrite()) return;
+      try { await removeSale(E.saleId); closeSheets(); toast('Penjualan dihapus.'); } catch (err) { showErr('sl-err', 'Gagal menghapus.'); }
+    });
+    else if (a === 'qty-' || a === 'qty+') { const i = $('#sf-qty'), v = parseInt(i.value, 10) || 1; i.value = Math.max(1, v + (a === 'qty+' ? 1 : -1)); updateTotal(); }
+    else if (a === 'cat') { S.cat = t.dataset.v; render(); }
+    else if (a === 'period') {
+      S.period = t.dataset.v;
+      if (S.period === 'rentang') { const n = new Date(); if (!S.from) S.from = ymd(new Date(n.getFullYear(), n.getMonth(), 1)); if (!S.to) S.to = todayStr(); $('#rg-from').value = S.from; $('#rg-to').value = S.to; }
+      render();
+    }
+    else if (a === 'seed') seedBooks(t);
+    else if (a === 'copy') copyRecap();
+    else if (a === 'csv') downloadCsv();
+    else if (a === 'backup') doBackup();
+    else if (a === 'restore') {
+      if (t.dataset.armed) { clearTimeout(t._t); delete t.dataset.armed; t.textContent = 'Pulihkan dari cadangan'; $('#restore-file').value = ''; $('#restore-file').click(); }
+      else { t.dataset.armed = '1'; t.textContent = 'Ketuk lagi: data sekarang akan diganti'; t._t = setTimeout(() => { delete t.dataset.armed; t.textContent = 'Pulihkan dari cadangan'; }, 5000); }
+    }
+    return;
+  }
+  if (e.target.classList && e.target.classList.contains('overlay')) closeSheets();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheets(); });
+$('#f-book').addEventListener('submit', submitBook);
+$('#f-sale').addEventListener('submit', submitSale);
+$('#bk-cat').addEventListener('input', paintPrev);
+$('#restore-file').addEventListener('change', function () { const f = this.files && this.files[0]; if (f) doRestore(f); });
+$('#bk-file').addEventListener('change', async function () {
+  const f = this.files && this.files[0]; if (!f) return;
+  try { E.thumb = await toThumb(f); $('#bk-err').hidden = true; paintPrev(); }
+  catch (err) { showErr('bk-err', err.message || 'Gambar gagal diproses.'); }
+});
+$('#sf-book').addEventListener('change', function () {
+  const b = S.books.find(x => x.id === this.value);
+  if (b && hasPrice(b)) $('#sf-price').value = b.price;
+  updateTotal();
+});
+$('#sf-qty').addEventListener('input', updateTotal);
+$('#sf-price').addEventListener('input', updateTotal);
+let qTimer;
+$('#q').addEventListener('input', function () { clearTimeout(qTimer); const v = this.value; qTimer = setTimeout(() => { S.q = v; renderGrid(); }, 120); });
+$('#rg-from').addEventListener('change', function () { S.from = this.value; renderRekap(); });
+$('#rg-to').addEventListener('change', function () { S.to = this.value; renderRekap(); });
+
+function route() {
+  const h = (location.hash || '').replace('#', '');
+  S.tab = TABS.indexOf(h) >= 0 ? h : 'katalog';
+  TABS.forEach(t => { $('#v-' + t).hidden = t !== S.tab; });
+  $$('.nav a').forEach(a => { if (a.dataset.tab === S.tab) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+  window.scrollTo(0, 0);
+  render();
+}
+window.addEventListener('hashchange', route);
+route();
+initStore();
+if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) navigator.serviceWorker.register('sw.js').catch(function () {});
+})();
+</script>
+</body>
+</html>
